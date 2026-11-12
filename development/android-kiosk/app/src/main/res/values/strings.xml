@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Elite RF Visitor Kiosk</string>
+    <string name="device_admin_description">Allows Elite RF Visitor Kiosk to enforce the approved visitor kiosk policies.</string>
+    <string name="managed_kiosk_url_title">Elite RF kiosk URL</string>
+    <string name="managed_kiosk_url_description">Trusted HTTPS URL for the Elite RF visitor check-in page</string>
+    <string name="managed_kiosk_url_default"></string>
+</resources>

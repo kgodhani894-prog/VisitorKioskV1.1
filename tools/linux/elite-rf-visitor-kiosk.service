@@ -1,0 +1,27 @@
+[Unit]
+Description=Elite RF Visitor Kiosk backend
+After=network.target
+
+[Service]
+Type=simple
+User=eliterfkiosk
+Group=eliterfkiosk
+WorkingDirectory=/opt/elite-rf-visitor-kiosk/app
+EnvironmentFile=/etc/elite-rf-visitor-kiosk/kiosk.env
+ExecStartPre=/usr/bin/test ! -e /var/lib/elite-rf-visitor-kiosk/.restore-in-progress
+ExecStart=/opt/elite-rf-visitor-kiosk/venv/bin/python /opt/elite-rf-visitor-kiosk/app/run.py --host 127.0.0.1 --port 8080 --runtime-root /var/lib/elite-rf-visitor-kiosk
+Restart=on-failure
+RestartSec=5
+UMask=0027
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+ReadWritePaths=/var/lib/elite-rf-visitor-kiosk
+
+[Install]
+WantedBy=multi-user.target

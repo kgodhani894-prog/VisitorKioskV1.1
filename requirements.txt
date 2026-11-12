@@ -1,0 +1,3 @@
+msal>=1.31.0,<2
+cryptography>=42.0.0,<46
+reportlab>=4.2.0,<5

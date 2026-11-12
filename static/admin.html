@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Elite RF Visitor Admin</title>
+  <link rel="stylesheet" href="/static/admin.css">
+</head>
+<body>
+  <main class="admin-shell">
+    <header class="admin-header">
+      <div><p class="eyebrow">Secure visitor records</p><h1>Visitor Admin</h1></div>
+      <img src="/static/elite-rf-logo.png" alt="Elite RF Amplifiers & Systems">
+    </header>
+    <section id="loginPanel" class="login-card">
+      <h2 id="authTitle">Admin sign in</h2>
+      <p id="authHelp">Use the password set for this kiosk system.</p>
+      <p id="setupNotice" class="field-help" hidden></p>
+      <input id="password" type="password" placeholder="Admin password" autocomplete="current-password">
+      <input id="confirmPassword" type="password" placeholder="Confirm owner password" autocomplete="new-password" hidden>
+      <button id="authBtn">Log in</button>
+    </section>
+    <section id="dashboard" hidden>
+      <div id="health" class="health-strip"></div>
+      <nav class="admin-tabs" aria-label="Admin sections">
+        <button class="tab-button active" type="button" data-tab="visits">Visitor arrivals</button>
+        <button class="tab-button" type="button" data-tab="employees">Employees</button>
+        <button class="tab-button" type="button" data-tab="notifications">Notifications</button>
+        <button id="logoutBtn" class="tab-button logout-tab" type="button">Log out</button>
+      </nav>
+      <section id="visitsPanel" class="tab-panel table-card">
+        <div class="table-heading"><div><p class="eyebrow">Visitor log</p><h2>Visitor arrivals</h2></div><div><button id="exportBtn" class="outline-button" type="button">Export complete log</button><a id="exportDatabasePdfBtn" class="button-link outline-button" href="/api/admin/visits/export.pdf" target="_blank" rel="noopener">Export database PDF</a><button id="refreshBtn" class="outline-button" type="button">Refresh</button></div></div>
+        <div class="table-scroll"><table><thead><tr><th>Checked in (Central Time)</th><th>First name</th><th>Last name</th><th>Phone</th><th>Email</th><th>Company</th><th>Meeting with</th><th>Location</th><th>Photo</th><th>Actions</th></tr></thead><tbody id="visits"></tbody></table></div>
+        <p id="emptyState" class="empty-state" hidden>No visitor records yet.</p>
+      </section>
+      <section id="employeesPanel" class="tab-panel" hidden>
+        <section class="employee-editor">
+          <div><p class="eyebrow">Kiosk host list</p><h2 id="employeeFormTitle">Add an employee</h2><p>Only active employees appear in the kiosk’s “Who are you meeting?” list.</p></div>
+          <form id="employeeForm" class="employee-form">
+            <input id="employeeId" type="hidden">
+            <label>Employee name<input id="employeeName" required maxlength="120" autocomplete="name"></label>
+            <label>Email address<input id="employeeEmail" type="email" maxlength="254" autocomplete="email" required></label>
+            <label class="employee-active"><input id="employeeActive" type="checkbox" checked> Active — show this employee on the kiosk</label>
+            <div class="employee-form-actions"><button type="submit" id="saveEmployeeBtn">Add employee</button><button type="button" id="cancelEmployeeBtn" class="outline-button" hidden>Cancel edit</button></div>
+          </form>
+        </section>
+        <section class="table-card employee-table-card">
+          <div class="table-heading"><div><p class="eyebrow">Current list</p><h2>Employees</h2></div><button id="refreshEmployeesBtn" class="outline-button" type="button">Refresh</button></div>
+          <div class="table-scroll"><table class="employee-table"><thead><tr><th>Name</th><th>Mobile number</th><th>Email</th><th>Alert</th><th>Kiosk status</th><th>Actions</th></tr></thead><tbody id="employees"></tbody></table></div>
+          <p id="emptyEmployeesState" class="empty-state" hidden>No employees added yet.</p>
+        </section>
+      </section>
+      <section id="notificationsPanel" class="tab-panel" hidden>
+        <section class="settings-card">
+          <div><p class="eyebrow">Email delivery</p><h2>Notification settings</h2><p>Control whether visitor alerts are sent by Microsoft 365 email. Credentials remain on the host computer and are never shown here.</p></div>
+          <form id="notificationForm" class="notification-form">
+            <label class="notification-toggle"><input id="notificationsEnabled" type="checkbox"> Send visitor alerts</label>
+            <label>Email message template<textarea id="messageTemplate" maxlength="240" rows="3" required></textarea></label>
+            <p class="field-help">Available fields: <code>{visitor_name}</code>, <code>{company}</code>, <code>{location}</code>, <code>{host_name}</code></p>
+            <button type="submit">Save notification settings</button>
+          </form>
+        </section>
+        <section class="settings-card" id="m365SetupCard">
+          <div><p class="eyebrow">One-time setup</p><h2>Prepare Microsoft 365</h2><p>Enter the app details from company IT. Upload an IT-approved certificate for production, or generate a pilot certificate here if company policy allows. The private key stays encrypted on this server.</p></div>
+          <form id="m365SetupForm" class="notification-form">
+            <label>Microsoft tenant ID or company tenant domain
+              <input id="m365TenantId" type="text" maxlength="254" autocomplete="off" spellcheck="false" required>
+            </label>
+            <label>Application (client) ID
+              <input id="m365ClientId" type="text" maxlength="36" autocomplete="off" spellcheck="false" required>
+            </label>
+            <label>HTTPS sign-in return address
+              <input id="m365RedirectUri" type="url" maxlength="2048" placeholder="https://your-company-host/oauth/microsoft/callback" autocomplete="url" required>
+            </label>
+            <p class="field-help">Use the same HTTPS address the admin dashboard uses. IT must add this exact return address to the Entra app and grant delegated Microsoft Graph Mail.Send.</p>
+            <button id="saveM365SetupBtn" type="submit">Save app details</button>
+            <p id="m365SetupStatus" class="field-help" role="status" aria-live="polite"></p>
+            <div class="button-row">
+              <button id="generateM365CertBtn" type="button" disabled>Generate pilot certificate</button>
+              <a id="downloadM365CertLink" class="button-link" href="/api/admin/notifications/certificate" hidden>Download public certificate for IT</a>
+            </div>
+            <label>Or upload the company-approved public certificate
+              <input id="m365CertificateFile" type="file" accept=".cer,.crt,.pem,application/pkix-cert,application/x-x509-ca-cert" disabled>
+            </label>
+            <label>Matching unencrypted PEM private key
+              <input id="m365PrivateKeyFile" type="file" accept=".pem,text/plain" disabled>
+            </label>
+            <button id="uploadM365CertBtn" type="button" disabled>Securely save uploaded certificate</button>
+            <p id="m365CertificateHelp" class="field-help"></p>
+          </form>
+        </section>
+        <section class="settings-card">
+          <div><p class="eyebrow">Microsoft 365 account</p><h2>Connect the sender mailbox</h2><p>When setup is ready, choose the company mailbox that should send visitor alerts. Microsoft signs you in and returns you to this dashboard. Employee email addresses remain managed in the Employees tab.</p></div>
+          <div class="notification-form">
+            <p id="m365ConnectionStatus" class="field-help">Microsoft 365 account status is loading...</p>
+            <div class="button-row">
+              <button id="connectM365Btn" type="button">Connect Microsoft 365 account</button>
+              <button id="disconnectM365Btn" type="button" class="secondary-button" hidden>Disconnect account</button>
+            </div>
+            <p id="m365SetupHelp" class="field-help" hidden></p>
+          </div>
+        </section>
+        <section class="settings-card notification-test-card">
+          <div><p class="eyebrow">Email delivery check</p><h2>Send a test email</h2><p>Send one clearly labeled test email to an active employee. Test mode never sends email.</p></div>
+          <form id="testEmailForm" class="notification-form">
+            <p id="emailStatus" class="field-help">Email status is loading...</p>
+            <label>Select active employee
+              <select id="testEmailEmployee" required></select>
+            </label>
+            <button type="submit">Send test email</button>
+          </form>
+        </section>
+      </section>
+    </section>
+  </main>
+  <dialog id="photoDialog"><button id="closePhoto" aria-label="Close photo">×</button><img id="dialogPhoto" alt="Visitor photo"></dialog>
+  <script src="/static/admin.js"></script>
+</body>
+</html>

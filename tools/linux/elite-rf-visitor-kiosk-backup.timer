@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily Elite RF Visitor Kiosk backup
+
+[Timer]
+OnCalendar=*-*-* 02:00:00
+Persistent=true
+RandomizedDelaySec=10m
+Unit=elite-rf-visitor-kiosk-backup.service
+
+[Install]
+WantedBy=timers.target

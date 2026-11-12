@@ -1,0 +1,181 @@
+ELITE RF VISITOR KIOSK - COMPANY INSTALLATION
+
+DEPLOYMENT TARGET
+
+Elite RF's backend host is a Debian Linux VM behind Apache. Use the detailed
+"DEBIAN APACHE DEPLOYMENT" section at the end of this document for that host.
+The Windows-specific requirements and installer steps below apply only if IT
+chooses a Windows host instead. Apache terminates trusted HTTPS and forwards
+to the backend on 127.0.0.1:8080; do not expose TCP 8080 directly to the LAN.
+
+Use the clean company deployment ZIP. Do not copy the home-testing folder: it
+may contain home certificates, test records, photos, and private settings.
+
+WHAT THE COMPANY NEEDS
+
+- One Debian Linux VM that stays running, with systemd and Apache 2.4.
+- Python 3.11 or newer and python3-venv from the approved Debian package source.
+- A stable internal hostname and a matching TLS certificate trusted by the
+  managed Android tablet and admin computers. Public DNS is not required.
+- A DHCP reservation or internal DNS record that keeps the host at the same
+  address, so both pages remain at one predictable hostname.
+- A Microsoft Entra app registration with delegated Microsoft Graph `Mail.Send`,
+  a registered HTTPS callback URL, an approved certificate credential, and a
+  dedicated sender mailbox. An admin connects that mailbox in the dashboard.
+- Encrypted company-approved secondary backup storage.
+- One company-owned Android tablet and an Android Enterprise/MDM plan for final
+  production signing, provisioning, policy enforcement, and automatic updates.
+
+FASTEST SAFE INSTALLATION
+
+The selected company target is Debian behind Apache. Follow the detailed
+"DEBIAN APACHE DEPLOYMENT" section at the end of this document. The Windows
+quick steps below apply only if IT later chooses a Windows host.
+
+1. On the company computer, download official Python from:
+
+   https://www.python.org/downloads/windows/
+
+   Install Python 3.11 or newer, choose the custom installation option, select
+   "Add Python to PATH", and select "Install for all users". This is a one-time
+   requirement. System-wide installation lets the backend recover after a
+   reboot before anyone signs in. The current package does not bundle Python.
+
+2. Scan and unblock the trusted deployment ZIP before extracting it. In Windows
+   Explorer, right-click the ZIP, choose Properties, select Unblock if shown,
+   and then extract a fresh copy.
+
+3. Move the extracted folder to a permanent company-approved location such as:
+
+   C:\EliteRF\VisitorKiosk
+
+   Do not run production from Downloads, OneDrive synchronization, an email
+   attachment, a removable drive, or a temporary folder.
+
+4. Double-click:
+
+   SET UP ELITE RF ON THIS COMPUTER.bat
+
+   The assistant checks Python, required files, private settings, HTTPS,
+   protected backups, owner setup, diagnostic results, Windows tasks, and the
+   firewall. It never displays secret values. If Python is missing, it opens the
+   official download page. If `.env` is missing, it creates it and generates a
+   private random session secret locally.
+
+5. In the `.env` file opened by the assistant, enter only company-approved
+   values:
+
+   M365_TENANT_ID=
+   M365_CLIENT_ID=
+   M365_SENDER_ADDRESS=
+   M365_CERTIFICATE_PATH=
+   M365_CERTIFICATE_THUMBPRINT=
+   M365_PRIVATE_KEY_PATH=
+   M365_GRAPH_SCOPE=https://graph.microsoft.com/.default
+   M365_REDIRECT_URI=https://<company-internal-hostname>/oauth/microsoft/callback
+   KIOSK_SESSION_SECRET=
+   KIOSK_TLS_CERT_PATH=
+   KIOSK_TLS_KEY_PATH=
+   KIOSK_PUBLIC_HOSTNAME=
+   KIOSK_BACKUP_COPY_PATH=
+   KIOSK_BACKUP_RETENTION=30
+
+   Keep `.env` and private keys only on the backend computer and in the
+   company's encrypted secrets system. Never send them by email, chat,
+   screenshot, or copy them to the tablet.
+
+6. Before adding TLS paths, start production once and open:
+
+   http://127.0.0.1:8080/admin
+
+   Complete owner-password setup locally. Store that password in the company
+   password manager. Remote devices cannot claim first-run ownership.
+
+7. Stop the backend. Add the company hostname and TLS certificate/key paths to
+   `.env`. The certificate must match the permanent hostname and be trusted by
+   the Windows computer and Android tablet. Never bypass certificate warnings.
+
+   IT should reserve the host address in DHCP and point the internal hostname
+   to it. Both pages use that same address: `https://<hostname>/kiosk` on the
+   tablet and `https://<hostname>/admin` on authorized admin computers.
+
+8. Run the setup assistant again. When every check is ready, approve the single
+   Windows Administrator prompt. It installs:
+
+   - supervised startup after Windows boots;
+   - automatic restart if the backend exits;
+   - a verified daily backup task;
+   - a port 8080 firewall rule restricted to Domain/Private profiles and the
+     local subnet.
+
+   The selected Debian/Apache deployment exposes only HTTPS (normally TCP 443)
+   to approved devices and keeps backend port 8080 loopback-only. IT must block
+   guest Wi-Fi and WAN access. Same Wi-Fi alone is not a security boundary if
+   untrusted devices share it; use device or subnet rules, or an approved kiosk
+   VLAN. Client isolation must permit the managed tablet and admin computers
+   to reach the host.
+
+   After successful setup, internal application and private-setting files are
+   hidden to reduce clutter and accidental changes. The setup, production,
+   safe-test, and instruction files remain visible. Hidden files are still part
+   of the working system and must not be deleted.
+
+   These tasks run as the Windows system account. If the secondary backup is a
+   company network share, IT must grant that computer account access; mapped
+   drive letters are normally unavailable before user sign-in. A directly
+   attached encrypted backup drive is simpler.
+
+9. Restart Windows. Confirm the backend starts automatically and open:
+
+   https://COMPANY-HOSTNAME:8080/admin
+   https://COMPANY-HOSTNAME:8080/kiosk
+
+NORMAL USE
+
+The backend should start automatically after company setup. The desktop
+launcher remains available for maintenance:
+
+   START ELITE RF VISITOR KIOSK.bat
+
+For practice with disposable data and no email:
+
+   START ELITE RF SAFE TEST MODE.bat
+
+Safe-test password: test-owner-password-1234
+
+BACKUPS
+
+The backend creates a verified backup when no current valid backup exists and
+then at least every 24 hours while running. Windows also runs the daily backup
+task at 2:00 AM and after a missed schedule. Backups include the database, every
+visitor photo, configuration, and a recovery inventory. The newest 30 are kept
+by default. A missing or damaged secondary copy is replaced automatically.
+
+Ordinary ZIP backups intentionally exclude `.env`, TLS private keys, and APK
+signing keys. Store those separately in the company encrypted secrets system.
+The secondary backup path must not be on the same physical computer if it is
+expected to protect against theft, ransomware, fire, or disk failure.
+
+ANDROID TABLET
+
+The home-tested debug APK and home certificate are not final company artifacts.
+Before public use, company IT must:
+
+- create and protect the permanent Android signing key;
+- produce a production-signed `com.eliterf.kiosk` APK;
+- enroll the tablet in Android Enterprise/MDM as a company-owned Device Owner;
+- publish the private app through Managed Google Play;
+- set managed `kiosk_url` to the trusted company HTTPS `/kiosk` URL;
+- enable high-priority automatic updates;
+- complete the Android 14 provisioning, lockdown, camera, reboot, offline
+  recovery, and maintenance acceptance checks.
+
+FINAL PILOT
+
+Use fictional visitor information until every check passes. Add real employees
+with company email addresses, send one authorized Microsoft 365 test, submit
+one fictional check-in, verify its photo and Main Lobby email, restart the backend, verify data
+remains, run the backup restore drill, and confirm the tablet reconnects after
+the backend is stopped and restarted.
+
+See the company pilot and backup restore sections below for the detailed checks.

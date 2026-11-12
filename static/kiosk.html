@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Elite RF Visitor Check-In</title>
+  <link rel="stylesheet" href="/static/kiosk.css?v=20260909-professional-ux-v3">
+</head>
+<body>
+  <main class="kiosk-shell">
+    <section class="kiosk-card" aria-live="polite">
+      <header class="kiosk-header">
+        <img class="kiosk-logo" src="/static/elite-rf-logo.png" alt="Elite RF Amplifiers & Systems">
+      </header>
+
+      <form id="checkinForm" novalidate>
+        <section id="stepOne" class="step-panel step-one-panel">
+          <div class="step-one-heading">
+            <p class="eyebrow">Welcome to Elite RF</p>
+            <h1>Please enter your details</h1>
+            <p class="intro">We’ll notify your host once you complete check-in.</p>
+          </div>
+          <div class="details-grid">
+            <label class="field">First name <span class="required-mark" aria-label="required">*</span><input name="first_name" autocomplete="given-name" required></label>
+            <label class="field">Last name <span class="required-mark" aria-label="required">*</span><input name="last_name" autocomplete="family-name" required></label>
+            <label class="field">Phone<input name="phone" type="tel" autocomplete="tel"></label>
+            <fieldset class="field citizenship-field">
+              <legend>Are you a U.S. Citizen? <span class="required-mark" aria-label="required">*</span></legend>
+              <div class="choice-group">
+                <label class="choice"><input type="radio" name="us_citizen" value="yes" required> Yes</label>
+                <label class="choice"><input type="radio" name="us_citizen" value="no"> No</label>
+              </div>
+            </fieldset>
+            <label class="field email-field">Email <span class="required-mark" aria-label="required">*</span><input name="email" type="email" autocomplete="email" required aria-describedby="emailMessage"><span id="emailMessage" class="field-message" role="alert" aria-live="polite" hidden></span></label>
+            <label class="field">Company <span class="required-mark" aria-label="required">*</span><input name="company" autocomplete="organization" required enterkeyhint="next"></label>
+          </div>
+          <label class="host-field field">Who are you meeting? <span class="required-mark" aria-label="required">*</span>
+            <div class="host-picker">
+              <button class="host-picker-button" id="employeePicker" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="employeeOptions" tabindex="0">Select your host</button>
+              <div class="host-options" id="employeeOptions" role="listbox" aria-label="Host options" hidden></div>
+            </div>
+            <select name="employee_id" id="employeeSelect" required aria-hidden="true" tabindex="-1">
+              <option value="">Select your host</option>
+            </select>
+          </label>
+          <div class="step-actions right-action">
+            <button class="button secondary" id="clearFormBtn" type="button">Clear form</button>
+            <button class="button primary" id="nextBtn" type="button">Next <span aria-hidden="true">→</span></button>
+          </div>
+        </section>
+
+        <section id="stepTwo" class="photo-page photo-step" hidden>
+          <div class="camera-area photo-stage">
+            <div class="camera-frame">
+              <video id="video" class="camera-preview" autoplay muted playsinline aria-label="Live camera preview"></video>
+              <img id="photoPreview" alt="Captured visitor photo preview" hidden>
+            </div>
+          </div>
+          <div class="action-bar photo-controls">
+            <div class="photo-copy">
+              <p class="eyebrow">One last step</p>
+              <h1 id="photoHeading">Please take your photo</h1>
+              <p id="photoInstruction" class="intro">Look at the camera and center your face and shoulders in the frame.</p>
+              <p id="photoSecurity" class="photo-security">Your photo is used for visitor identification and security.</p>
+              <p id="cameraMessage" class="camera-message" role="status" aria-live="polite" hidden></p>
+            </div>
+            <div class="step-actions photo-actions">
+              <button class="button secondary" id="photoBackBtn" type="button">Back</button>
+              <button class="button primary" id="captureBtn" type="button">TAKE PHOTO</button>
+              <button class="button secondary" id="retakeBtn" type="button" hidden>RETAKE PHOTO</button>
+              <button class="button primary" id="finishBtn" type="button" hidden>USE PHOTO</button>
+            </div>
+          </div>
+          <canvas id="canvas" hidden></canvas>
+        </section>
+      </form>
+
+      <section id="clearFormDialog" class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="clearFormTitle" aria-describedby="clearFormDescription" hidden>
+        <div class="confirm-card">
+          <p class="eyebrow">Clear visitor details</p>
+          <h2 id="clearFormTitle">Are you sure you want to clear the form?</h2>
+          <p id="clearFormDescription">This will erase all your answers.</p>
+          <div class="confirm-actions">
+            <button class="button secondary" id="cancelClearFormBtn" type="button">No</button>
+            <button class="button primary" id="confirmClearFormBtn" type="button">Yes, clear form</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="stepThree" class="thank-you" hidden>
+        <div class="success-mark" aria-hidden="true">✓</div>
+        <p class="eyebrow">Check-in complete</p>
+        <h1>Thank you, <span id="visitorName"></span>!</h1>
+        <p class="thank-copy"><strong id="hostName"></strong> has been notified and will see you soon.</p>
+        <p class="lobby-note">Please wait in the lobby.</p>
+        <p class="reset-note">This screen will reset automatically.</p>
+        <div class="completion-actions">
+          <button class="button primary" id="backToCheckinBtn" type="button">Back to check-in</button>
+        </div>
+      </section>
+      <p id="formMessage" class="form-message" hidden></p>
+    </section>
+  </main>
+  <section id="connectionOverlay" class="connection-overlay" role="alert" aria-live="assertive" hidden>
+    <div class="connection-card">
+      <p class="eyebrow">Elite RF</p>
+      <h2 id="connectionTitle">Reconnecting…</h2>
+      <p id="connectionDetail">Please wait while we restore the check-in service.</p>
+      <div class="connection-progress" aria-hidden="true"></div>
+      <button class="button primary" id="connectionRetryBtn" type="button">Try again</button>
+    </div>
+  </section>
+  <script src="/static/kiosk.js?v=20260909-professional-ux-v3"></script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+[Unit]
+Description=Create and verify an Elite RF Visitor Kiosk backup
+After=network.target
+
+[Service]
+Type=oneshot
+User=eliterfkiosk
+Group=eliterfkiosk
+WorkingDirectory=/opt/elite-rf-visitor-kiosk/app
+EnvironmentFile=/etc/elite-rf-visitor-kiosk/kiosk.env
+ExecStartPre=/usr/bin/test ! -e /var/lib/elite-rf-visitor-kiosk/.restore-in-progress
+ExecStart=/opt/elite-rf-visitor-kiosk/venv/bin/python /opt/elite-rf-visitor-kiosk/app/tools/backup.py --root /var/lib/elite-rf-visitor-kiosk
+UMask=0027
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/elite-rf-visitor-kiosk
+
